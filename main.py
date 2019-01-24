@@ -23,10 +23,13 @@ def fit_linear(filename):
     print('b =', b, '+-', db)
     print('chi2 =', chi_squared)
     print('chi2_reduced =', chi_squared_reduced)
+    plot_linear(a, b, data_list)
 
 
-def rows_or_columns(input_file):  # this function check what kind
+def rows_or_columns(input_file):
+    # this function check what kind
     # of input we get
+
     file_pointer = open(input_file, 'r')
     input_data = file_pointer.readlines()
     if len((input_data[0].split())) == 4:
@@ -35,11 +38,14 @@ def rows_or_columns(input_file):  # this function check what kind
         return 'rows'
 
 
-def column_function(input_file):  # This function reads an input file arranged in columns
+def column_function(input_file):
+    # This function reads an input file arranged in columns
+    # It will return an organized data file
+
     file_pointer = open(input_file, 'r')
     input_data = file_pointer.readlines()  # Now we read the file
     data_list = []  # rearrange data
-
+    data_points = 0
     for row in input_data:
         split_row = row.split()
         data_list.append(split_row)
@@ -98,10 +104,15 @@ def column_function(input_file):  # This function reads an input file arranged i
             for point in range(0, data_points):
                 temp_list.append(data_list[point][argument])
             fixed_list.append(temp_list)
+    for argument in range(-2, 0, 1):
+        fixed_list.append(data_list[argument])
     return fixed_list
 
 
-def rows_function(input_file):  # this function reads an input file arranged in rows
+def rows_function(input_file):
+    # this function reads an input file arranged in rows
+    # It will return an organized data file
+
     file_pointer = open(input_file, 'r')
     input_data = file_pointer.readlines()  # Now we read the file
     data_list = []  # rearrange data
@@ -130,7 +141,8 @@ def rows_function(input_file):  # this function reads an input file arranged in 
         argument.remove(argument[0])
         argument.insert(0, lower_argument)
 
-    fixed_list = []  # now we make sure the data is arranged as x,dx,y,dy
+    # now we make sure the data is arranged as x,dx,y,dy
+    fixed_list = []
     for argument in data_list[:4]:
         if argument[0] == 'x':
             fixed_list.append(argument)
@@ -143,28 +155,32 @@ def rows_function(input_file):  # this function reads an input file arranged in 
     for argument in data_list[:4]:
         if argument[0] == 'dy':
             fixed_list.append(argument)
-    fixed_list.append(data_list[4:])
-
+    for argument in range(-2, 0, 1):
+        fixed_list.append(data_list[argument])
     return fixed_list
 
 
-def find_a(input_list):  # here we calculate parameter a
+def find_a(input_list):
+    # here we calculate parameter a
+
     xy_list = ['xy']
     x_squared_list = ['x squared']
     x = input_list[0]
     y = input_list[2]
-    for i in range (1,len(x)):
-        xy_list.append ((x[i])*(y[i]))
-        x_squared_list.append (((x[i])**2))
+    for i in range(1, len(x)):
+        xy_list.append((x[i])*(y[i]))
+        x_squared_list.append(((x[i])**2))
     xy_avg = calculate_average(xy_list, input_list)
-    x_avg = calculate_average(x,input_list)
-    y_avg = calculate_average(y,input_list)
+    x_avg = calculate_average(x, input_list)
+    y_avg = calculate_average(y, input_list)
     x_squared_avg = calculate_average(x_squared_list, input_list)
     parameter_a = ((xy_avg - (x_avg * y_avg))/(x_squared_avg - (x_avg ** 2)))
     return parameter_a
 
 
-def find_da(input_list):  # here we calculate the uncertainty of parameter a
+def find_da(input_list):
+    # here we calculate the uncertainty of parameter a
+
     x_squared_list = ['x squared']
     x = input_list[0]
     dy = input_list[3]
@@ -181,7 +197,8 @@ def find_da(input_list):  # here we calculate the uncertainty of parameter a
     return da
 
 
-def find_db (input_list):  # here we calculate the uncertainty of parameter b
+def find_db(input_list):
+    # here we calculate the uncertainty of parameter b
     x_squared_list = ['x squared']
     x = input_list[0]
     dy = input_list[3]
@@ -225,14 +242,12 @@ def find_chi_squared(data_list):  # here we calculate chi squared reduced
     dy = data_list[3]
     a = find_a(data_list)
     b = find_b(data_list, a)
-    da = find_da(data_list)
-    db = find_db(data_list)
     for i in range(1, len(x)):
         chi_squared += (((float(y[i])-((a*x[i])+b))/(float(dy[i]))) ** 2)
     return chi_squared
 
 
-def find_chi_reduced (data_list):
+def find_chi_reduced(data_list):
     x = data_list[0]
     points_amount = len(x)-1
     chi_squared = find_chi_squared(data_list)
@@ -240,5 +255,25 @@ def find_chi_reduced (data_list):
     return chi_squared_reduced
 
 
-print(fit_linear('Err_data_len.txt'))
+def plot_linear(a, b, data_list):
+    import matplotlib.pyplot as plt
+    import numpy as np
+    x_axis = data_list[-2]
+    y_axis = data_list[-1]
+    x_points = data_list[0]
+    y_points = data_list[2]
+    dx = data_list[1]
+    dy = data_list[3]
+    plt.xlabel('{} {}'.format(x_axis[2], x_axis[3]))
+    plt.ylabel('{} {}'.format(y_axis[2], y_axis[3]))
+    min_x = min(x_points[1:])
+    max_x = max(x_points[1:])
+    t = np.arange(min_x, max_x+0.2, 0.2)
+    fit_line = a*t + b
+    plt.plot(t, fit_line, 'r')
+    plt.errorbar(x_points[1:], y_points[1:], xerr=dx[1:], yerr=dy[1:], fmt='b+')
+    return plt.savefig("linear_fit.svg", format="svg")
+
+
+print(fit_linear('rows_input.txt'))
 

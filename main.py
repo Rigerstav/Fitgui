@@ -1,29 +1,35 @@
 def fit_linear(filename):
-    data_list = []
-    check_input_type = rows_or_columns(filename)
+    data_dict = {}
+    check_input_type = rows_or_columns(filename)  # here we check what kind of input we get
     if check_input_type == 'columns':
-        data_list = column_function(filename)
-        if data_list == 'length Error':
+        data_dict = column_function(filename)
+
+        if data_dict == 'length Error':
             return "Input file error: Data lists are not the same length."
-        if data_list == 'zero division Error':
+
+        if data_dict == 'zero division Error':
             return "Input file error: Not all uncertainties are positive."
+
     if check_input_type == 'rows':
-        data_list = rows_function(filename)
-        if data_list == 'length Error':
+        data_dict = rows_function(filename)
+
+        if data_dict == 'length Error':
             return "Input file error: Data lists are not the same length."
-        if data_list == 'zero division Error':
+
+        if data_dict == 'zero division Error':
             return "Input file error: Not all uncertainties are positive."
-    a = find_a(data_list)
-    b = find_b(data_list, a)
-    chi_squared = find_chi_squared(data_list)
-    chi_squared_reduced = find_chi_reduced(data_list)
-    da = find_da(data_list)
-    db = find_db(data_list)
+
+    a = find_a(data_dict)
+    b = find_b(data_dict, a)
+    chi_squared = find_chi_squared(data_dict)
+    chi_squared_reduced = find_chi_reduced(data_dict)
+    da = find_da(data_dict)
+    db = find_db(data_dict)
     print('a =', a, '+-', da)
     print('b =', b, '+-', db)
     print('chi2 =', chi_squared)
     print('chi2_reduced =', chi_squared_reduced)
-    plot_linear(a, b, data_list)
+    plot_linear(a, b, data_dict)
 
 
 def rows_or_columns(input_file):
@@ -79,34 +85,43 @@ def column_function(input_file):
                 if uncertainty[argument] <= 0.0:
                     return 'zero division Error'
 
-    fixed_list = []  # now we make sure the data is arranged as x,dx,y,dy
+    data_dict = {}  # here we sort the data in a dictionary
     for argument in range(0, 4):
         temp_list = []
         if data_list[0][argument] == 'x':
             for point in range(0, data_points):
                 temp_list.append(data_list[point][argument])
-            fixed_list.append (temp_list)
+            data_dict['x'] = temp_list[1:]
+
     for argument in range(0, 4):
         temp_list = []
         if data_list[0][argument] == 'dx':
             for point in range(0, data_points):
                 temp_list.append(data_list[point][argument])
-            fixed_list.append(temp_list)
+            data_dict['dx'] = temp_list[1:]
+
     for argument in range(0, 4):
         temp_list = []
         if data_list[0][argument] == 'y':
             for point in range(0, data_points):
                 temp_list.append(data_list[point][argument])
-            fixed_list.append(temp_list)
+            data_dict['y'] = temp_list[1:]
+
     for argument in range(0, 4):
         temp_list = []
         if data_list[0][argument] == 'dy':
             for point in range(0, data_points):
                 temp_list.append(data_list[point][argument])
-            fixed_list.append(temp_list)
+            data_dict['dy'] = temp_list[1:]
+
     for argument in range(-2, 0, 1):
-        fixed_list.append(data_list[argument])
-    return fixed_list
+        if data_list[argument][0] == 'x':
+            data_dict['x axis'] = data_list[argument][2:]
+
+        if data_list[argument][0] == 'y':
+            data_dict['y axis'] = data_list[argument][2:]
+
+    return data_dict
 
 
 def rows_function(input_file):
@@ -116,6 +131,7 @@ def rows_function(input_file):
     file_pointer = open(input_file, 'r')
     input_data = file_pointer.readlines()  # Now we read the file
     data_list = []  # rearrange data
+
     for row in input_data:
         split_row = row.split()
         data_list.append(split_row)
@@ -141,139 +157,265 @@ def rows_function(input_file):
         argument.remove(argument[0])
         argument.insert(0, lower_argument)
 
-    # now we make sure the data is arranged as x,dx,y,dy
-    fixed_list = []
+    data_dict = {}  # here we sort the data in a dictionary
     for argument in data_list[:4]:
         if argument[0] == 'x':
-            fixed_list.append(argument)
+            data_dict['x'] = argument[1:]
+
     for argument in data_list[:4]:
         if argument[0] == 'dx':
-            fixed_list.append(argument)
+            data_dict['dx'] = argument[1:]
+
     for argument in data_list[:4]:
         if argument[0] == 'y':
-            fixed_list.append(argument)
+            data_dict['y'] = argument[1:]
+
     for argument in data_list[:4]:
         if argument[0] == 'dy':
-            fixed_list.append(argument)
-    for argument in range(-2, 0, 1):
-        fixed_list.append(data_list[argument])
-    return fixed_list
+            data_dict['dy'] = argument[1:]
+
+    for argument in range(-2, 0, 1):  # here we check if this is regular or bonus input
+        if data_list[argument][0] == 'b':  # for a bonus input, this will be the index for the axis
+            for index in range(-5, -3, 1):
+                if data_list[index][0] == 'x':
+                    data_dict['x axis'] = data_list[index][2:]
+                if data_list[index][0] == 'y':
+                    data_dict['y axis'] = data_list[index][2:]
+
+            float_list = []
+            for number in data_list[argument][1:]:
+                float_list.append(float(number))
+            data_dict['b'] = float_list
+
+        if data_list[argument][0] == 'a':
+            float_list = []
+            for number in data_list[argument][1:]:
+                float_list.append(float(number))
+            data_dict['a'] = float_list
+
+        if data_list[argument][0] == 'x':
+            data_dict['x axis'] = data_list[argument][2:]
+
+        if data_list[argument][0] == 'y':
+            data_dict['y axis'] = data_list[argument][2:]
+
+    return data_dict
 
 
-def find_a(input_list):
-    # here we calculate parameter a
-
-    xy_list = ['xy']
-    x_squared_list = ['x squared']
-    x = input_list[0]
-    y = input_list[2]
-    for i in range(1, len(x)):
-        xy_list.append((x[i])*(y[i]))
-        x_squared_list.append(((x[i])**2))
-    xy_avg = calculate_average(xy_list, input_list)
-    x_avg = calculate_average(x, input_list)
-    y_avg = calculate_average(y, input_list)
-    x_squared_avg = calculate_average(x_squared_list, input_list)
-    parameter_a = ((xy_avg - (x_avg * y_avg))/(x_squared_avg - (x_avg ** 2)))
-    return parameter_a
-
-
-def find_da(input_list):
-    # here we calculate the uncertainty of parameter a
-
-    x_squared_list = ['x squared']
-    x = input_list[0]
-    dy = input_list[3]
-    dy_squared_list = ['dy squared']
-    number_of_points = len(x)-1
-    for i in range(1, len(x)):
-        x_squared_list.append(((x[i]) ** 2))
-        dy_squared_list.append(((dy[i])**2))
-    avg_dy_squared = calculate_average(dy_squared_list, input_list)
-    avg_x_squared = calculate_average(x_squared_list, input_list)
-    avg_x = calculate_average(x, input_list)
-    da_squared = avg_dy_squared/(number_of_points*(avg_x_squared-(avg_x**2)))
-    da = da_squared**0.5
-    return da
-
-
-def find_db(input_list):
-    # here we calculate the uncertainty of parameter b
-    x_squared_list = ['x squared']
-    x = input_list[0]
-    dy = input_list[3]
-    dy_squared_list = ['dy squared']
-    number_of_points = len(x)-1
-    for i in range(1, len(x)):
-        x_squared_list.append(((x[i]) ** 2))
-        dy_squared_list.append(((dy[i])**2))
-    avg_dy_squared = calculate_average(dy_squared_list, input_list)
-    avg_x_squared = calculate_average(x_squared_list, input_list)
-    avg_x = calculate_average(x, input_list)
-    db_squared = (avg_dy_squared*avg_x_squared)/(number_of_points*(avg_x_squared-(avg_x**2)))
-    db = db_squared ** 0.5
-    return db
-
-
-def find_b(input_list, a):  # here we calculate parameter b
-    y = input_list[2]
-    x = input_list[0]
-    y_avg = calculate_average(y, input_list)
-    x_avg = calculate_average(x, input_list)
-    b = y_avg - a*x_avg
-    return b
-
-
-def calculate_average (z_list, input_list):  # here we calculate the z average
-    dy = input_list[3]
+def calculate_average(z_list, input_dict):  # here we calculate the z average ("roof")
+    dy = input_dict['dy']
     numerator = 0
     denominator = 0
-    for i in range(1,len(dy)):
+    for i in range(0, len(dy)):
         numerator += (z_list[i]/((dy[i])**2))
         denominator += (1/((dy[i])**2))
     z_avg = numerator/denominator
     return z_avg
 
 
-def find_chi_squared(data_list):  # here we calculate chi squared reduced
+def find_a(input_dict):
+    # here we calculate parameter a
+
+    xy_list = []
+    x_squared_list = []
+    x = input_dict['x']
+    y = input_dict['y']
+
+    for i in range(0, len(x)):  # here we create input for 'calculate average'
+        xy_list.append((x[i])*(y[i]))
+        x_squared_list.append(((x[i])**2))
+
+    xy_avg = calculate_average(xy_list, input_dict)
+    x_avg = calculate_average(x, input_dict)
+    y_avg = calculate_average(y, input_dict)
+    x_squared_avg = calculate_average(x_squared_list, input_dict)
+    parameter_a = ((xy_avg - (x_avg * y_avg))/(x_squared_avg - (x_avg ** 2)))
+    return parameter_a
+
+
+def find_da(input_dict):
+    # here we calculate the uncertainty of parameter a
+
+    x_squared_list = []
+    x = input_dict['x']
+    dy = input_dict['dy']
+    dy_squared_list = []
+    number_of_points = len(x)
+
+    for i in range(0, len(x)):  # here we create input for 'calculate average'
+        x_squared_list.append(((x[i]) ** 2))
+        dy_squared_list.append(((dy[i])**2))
+
+    avg_dy_squared = calculate_average(dy_squared_list, input_dict)
+    avg_x_squared = calculate_average(x_squared_list, input_dict)
+    avg_x = calculate_average(x, input_dict)
+    da_squared = avg_dy_squared/(number_of_points*(avg_x_squared-(avg_x**2)))
+    da = da_squared**0.5
+    return da
+
+
+def find_db(input_dict):
+    # here we calculate the uncertainty of parameter b
+
+    x_squared_list = []
+    x = input_dict['x']
+    dy = input_dict['dy']
+    dy_squared_list = []
+    number_of_points = len(x)
+
+    for i in range(0, len(x)):  # here we create input for 'calculate average'
+        x_squared_list.append(((x[i]) ** 2))
+        dy_squared_list.append(((dy[i])**2))
+
+    avg_dy_squared = calculate_average(dy_squared_list, input_dict)
+    avg_x_squared = calculate_average(x_squared_list, input_dict)
+    avg_x = calculate_average(x, input_dict)
+    db_squared = (avg_dy_squared*avg_x_squared)/(number_of_points*(avg_x_squared-(avg_x**2)))
+    db = db_squared ** 0.5
+    return db
+
+
+def find_b(input_dict, a):  # here we calculate parameter b
+    y = input_dict['y']
+    x = input_dict['x']
+    y_avg = calculate_average(y, input_dict)
+    x_avg = calculate_average(x, input_dict)
+    b = y_avg - a*x_avg
+    return b
+
+
+def find_chi_squared(data_dict):  # here we calculate chi squared
     chi_squared = 0
-    x = data_list[0]
-    y = data_list[2]
-    dy = data_list[3]
-    a = find_a(data_list)
-    b = find_b(data_list, a)
-    for i in range(1, len(x)):
+    x = data_dict['x']
+    y = data_dict['y']
+    dy = data_dict['dy']
+    a = find_a(data_dict)
+    b = find_b(data_dict, a)
+
+    for i in range(0, len(x)):
         chi_squared += (((float(y[i])-((a*x[i])+b))/(float(dy[i]))) ** 2)
+
     return chi_squared
 
 
-def find_chi_reduced(data_list):
-    x = data_list[0]
-    points_amount = len(x)-1
-    chi_squared = find_chi_squared(data_list)
+def find_chi_reduced(data_dict):  # here we calculate chi squared reduced
+    n = data_dict['x']
+    points_amount = len(n)
+    chi_squared = find_chi_squared(data_dict)
     chi_squared_reduced = (chi_squared/(points_amount-2))
     return chi_squared_reduced
 
 
-def plot_linear(a, b, data_list):
+def plot_linear(a, b, data_dict):  # this function create and save the plot
     import matplotlib.pyplot as plt
     import numpy as np
-    x_axis = data_list[-2]
-    y_axis = data_list[-1]
-    x_points = data_list[0]
-    y_points = data_list[2]
-    dx = data_list[1]
-    dy = data_list[3]
-    plt.xlabel('{} {}'.format(x_axis[2], x_axis[3]))
-    plt.ylabel('{} {}'.format(y_axis[2], y_axis[3]))
-    min_x = min(x_points[1:])
-    max_x = max(x_points[1:])
-    t = np.arange(min_x, max_x+0.2, 0.2)
+    x_axis = data_dict['x axis']
+    y_axis = data_dict['y axis']
+    x_points = data_dict['x']
+    y_points = data_dict['y']
+    dx = data_dict['dx']
+    dy = data_dict['dy']
+    plt.xlabel('{} {}'.format(x_axis[0], x_axis[1]))
+    plt.ylabel('{} {}'.format(y_axis[0], y_axis[1]))
+    min_x = min(x_points)
+    max_x = max(x_points)
+    t = np.arange(min_x, max_x+0.2, 0.2)  # here we create points for the linear fit
     fit_line = a*t + b
     plt.plot(t, fit_line, 'r')
-    plt.errorbar(x_points[1:], y_points[1:], xerr=dx[1:], yerr=dy[1:], fmt='b+')
-    return plt.savefig("linear_fit.svg", format="svg")
+    plt.errorbar(x_points, y_points, xerr=dx, yerr=dy, fmt='b+')
+    plt.savefig("linear_fit.svg", format="svg")
+    return plt.show()
 
 
-print(fit_linear('rows_input.txt'))
+# bonus section #
+
+def search_best_parameter(filename):
+    data_dict = {}
+    check_input_type = rows_or_columns(filename)  # here we check what kind of input we get
+    if check_input_type == 'columns':
+        data_dict = column_function(filename)
+
+        if data_dict == 'length Error':
+            return "Input file error: Data lists are not the same length."
+
+        if data_dict == 'zero division Error':
+            return "Input file error: Not all uncertainties are positive."
+
+    if check_input_type == 'rows':
+        data_dict = rows_function(filename)
+
+        if data_dict == 'length Error':
+            return "Input file error: Data lists are not the same length."
+
+        if data_dict == 'zero division Error':
+            return "Input file error: Not all uncertainties are positive."
+
+    chi_squared_initial = bonus_find_chi(data_dict, data_dict['a'][0], data_dict['b'][0])
+    numeric_fit = bonus_numeric_search_for_chi(chi_squared_initial, data_dict)
+    chi_squared = numeric_fit[0]
+    best_a = numeric_fit[1]
+    best_b = numeric_fit[2]
+    chi_squared_reduced = bonus_find_chi_reduced(len(data_dict['x']), chi_squared)
+    a_points = numeric_fit[3]
+    da = data_dict['a'][2]
+    db = data_dict['b'][2]
+
+    print('a =', best_a, '+-', da)
+    print('b =', best_b, '+-', db)
+    print('chi2 =', chi_squared)
+    print('chi2_reduced =', chi_squared_reduced)
+    plot_linear(best_a, best_b, data_dict)
+    bonus_plot_chi(best_b, a_points, data_dict)
+
+
+def bonus_find_chi(data_dict, a, b):  # here we calculate chi for numeric fit
+    chi_squared = 0
+    x = data_dict['x']
+    y = data_dict['y']
+    dy = data_dict['dy']
+    for i in range(0, len(x)):
+        chi_squared += (((float(y[i])-((a*x[i])+b))/(float(dy[i]))) ** 2)
+    return chi_squared
+
+
+def bonus_numeric_search_for_chi(chi_squared, data_dict):  # this function numerically search for chi
+    import numpy as np
+    best_a = data_dict['a'][0]
+    best_b = data_dict['b'][0]
+    a_points = np.arange(data_dict['a'][0], data_dict['a'][1], data_dict['a'][2])
+    b_points = np.arange(data_dict['b'][0], data_dict['b'][1], data_dict['b'][2])
+    for a in a_points:
+        for b in b_points:
+            find_chi = bonus_find_chi(data_dict, a, b)
+            if find_chi < chi_squared:
+                chi_squared = find_chi
+                best_a = a
+                best_b = b
+    return chi_squared, best_a, best_b, a_points
+
+
+def bonus_find_chi_reduced(n, chi):  # here we normalize chi squared
+    chi_squared_reduced = (chi/(n-2))
+    return chi_squared_reduced
+
+
+def bonus_plot_chi(best_b, a_points, data_dict):  # this function plots chi as a function of a
+    import matplotlib.pyplot as plt
+    import numpy as np
+    x_axis = 'a'
+    y_axis = 'chi2(a, b = {0:.2f})'.format(best_b)
+    x_points = a_points
+    y_points = []
+    for i in x_points:
+        chi = bonus_find_chi(data_dict, i, best_b)
+        y_points.append(chi)
+
+    plt.xlabel('{}'.format(x_axis))
+    plt.ylabel('{}'.format(y_axis))
+    plt.plot(x_points, y_points, 'b')
+    plt.savefig("numeric_sampling.svg", format="svg")
+
+    return plt.show()
+
+
 

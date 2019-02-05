@@ -46,7 +46,7 @@ def rows_or_columns(input_file):
 
 def column_function(input_file):
     # This function reads an input file arranged in columns
-    # It will return an organized data file
+    # It will return an organized data dictionary
 
     file_pointer = open(input_file, 'r')
     input_data = file_pointer.readlines()  # Now we read the file
@@ -126,7 +126,7 @@ def column_function(input_file):
 
 def rows_function(input_file):
     # this function reads an input file arranged in rows
-    # It will return an organized data file
+    # It will return an organized data dictionary
 
     file_pointer = open(input_file, 'r')
     input_data = file_pointer.readlines()  # Now we read the file
@@ -175,7 +175,7 @@ def rows_function(input_file):
             data_dict['dy'] = argument[1:]
 
     for argument in range(-2, 0, 1):  # here we check if this is regular or bonus input
-        if data_list[argument][0] == 'b':  # for a bonus input, this will be the index for the axis
+        if data_list[argument][0] == 'b':  # for a bonus input, this will be the index for the axes
             for index in range(-5, -3, 1):
                 if data_list[index][0] == 'x':
                     data_dict['x axis'] = data_list[index][2:]
@@ -193,7 +193,7 @@ def rows_function(input_file):
                 float_list.append(float(number))
             data_dict['a'] = float_list
 
-        if data_list[argument][0] == 'x':
+        if data_list[argument][0] == 'x':  # for regular input, this will be the index for the axes
             data_dict['x axis'] = data_list[argument][2:]
 
         if data_list[argument][0] == 'y':

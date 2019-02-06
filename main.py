@@ -420,5 +420,3 @@ def bonus_plot_chi(best_b, a_points, data_dict):  # this function plots chi as a
     return plt.show()
 
 
-print(search_best_parameter('bonus_input.txt'))
-

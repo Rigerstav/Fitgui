@@ -1,4 +1,5 @@
 def fit_linear(filename):
+    
     data_dict = {}
     check_input_type = rows_or_columns(filename)  # here we check what kind of input we get
     if check_input_type == 'columns':
@@ -74,7 +75,7 @@ def column_function(input_file):
             row.insert(number, float_number)
             row.remove(row[number+1])
 
-    for argument in range(0, len(data_list[0])):  # formatting
+    for argument in range(0, len(data_list[0])):  # here we change all the strings to lowercases
         lower_argument = data_list[0][argument].lower()
         data_list[0].remove(data_list[0][argument])
         data_list[0].insert(argument, lower_argument)
@@ -114,7 +115,7 @@ def column_function(input_file):
                 temp_list.append(data_list[point][argument])
             data_dict['dy'] = temp_list[1:]
 
-    for argument in range(-2, 0, 1):
+    for argument in range(-2, 0, 1):  # for regular input, this will be the index for the axis
         if data_list[argument][0] == 'x':
             data_dict['x axis'] = data_list[argument][2:]
 
@@ -193,7 +194,7 @@ def rows_function(input_file):
                 float_list.append(float(number))
             data_dict['a'] = float_list
 
-        if data_list[argument][0] == 'x':
+        if data_list[argument][0] == 'x':  # for regular input, this will be the index for the axis
             data_dict['x axis'] = data_list[argument][2:]
 
         if data_list[argument][0] == 'y':
@@ -381,7 +382,6 @@ def bonus_find_chi(data_dict, a, b):  # here we calculate chi for numeric fit
 
 
 def bonus_numeric_search_for_chi(chi_squared, data_dict):  # this function numerically search for chi
-    import numpy as np
     best_a = data_dict['a'][0]
     best_b = data_dict['b'][0]
     a_points = np.arange(data_dict['a'][0], data_dict['a'][1], data_dict['a'][2])

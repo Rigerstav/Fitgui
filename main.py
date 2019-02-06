@@ -381,7 +381,8 @@ def bonus_find_chi(data_dict, a, b):  # here we calculate chi for numeric fit
     return chi_squared
 
 
-def bonus_numeric_search_for_chi(chi_squared, data_dict):  # this function numerically search for chi
+def bonus_numeric_search_for_chi(chi_squared, data_dict):
+    # this function numerically search for chi
     best_a = data_dict['a'][0]
     best_b = data_dict['b'][0]
     a_points = np.arange(data_dict['a'][0], data_dict['a'][1], data_dict['a'][2])

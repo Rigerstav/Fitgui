@@ -1,7 +1,16 @@
 def fit_linear(filename):
+    # this function accetps a txt file with measured data for linear fit
+    # then changes that data into a dictionary
+    # it will check if the data has certain errors
+    # if the data has no errors, the function will calculate and print
+    # chi2, chi2reduced, a, da, b, db of the linear fit
+    # and then plots the linear fit line over the data points
     
     data_dict = {}
-    check_input_type = rows_or_columns(filename)  # here we check what kind of input we get
+    check_input_type = rows_or_columns(filename)  
+    # here we check what kind of input we get
+    # possible inputs are rows or columns input
+    
     if check_input_type == 'columns':
         data_dict = column_function(filename)
 
@@ -34,8 +43,8 @@ def fit_linear(filename):
 
 
 def rows_or_columns(input_file):
-    # this function check what kind
-    # of input we get
+    # this function check what kind of input we get
+    # input can be either data sorted in rows or in columns
 
     file_pointer = open(input_file, 'r')
     input_data = file_pointer.readlines()
@@ -47,7 +56,7 @@ def rows_or_columns(input_file):
 
 def column_function(input_file):
     # This function reads an input file arranged in columns
-    # It will return an organized data file
+    # It will return an organized data dictionary
 
     file_pointer = open(input_file, 'r')
     input_data = file_pointer.readlines()  # Now we read the file
@@ -127,7 +136,7 @@ def column_function(input_file):
 
 def rows_function(input_file):
     # this function reads an input file arranged in rows
-    # It will return an organized data file
+    # It will return an organized data dictionary
 
     file_pointer = open(input_file, 'r')
     input_data = file_pointer.readlines()  # Now we read the file
@@ -308,7 +317,7 @@ def find_chi_reduced(data_dict):  # here we calculate chi squared reduced
 
 
 def plot_linear(a, b, data_dict):  # this function create and save the plot
-    import matplotlib.pyplot as plt
+    import matplotlib.pyplot as plt  # it uses matplotlib to plot the linear fit
     import numpy as np
     x_axis = data_dict['x axis']
     y_axis = data_dict['y axis']
@@ -331,6 +340,16 @@ def plot_linear(a, b, data_dict):  # this function create and save the plot
 # bonus section #
 
 def search_best_parameter(filename):
+    # this function accetps a txt file with measured data for linear fit
+    # then changes that data into a dictionary
+    # it will check if the data has certain errors
+    # if the data has no errors, the function will numerically calculate the lowest chi2
+    # for a given range of a's and b's
+    # it will then create a linear fit, using the best match of a and b, which were used
+    # to calculate the lowest chi2. 
+    # then it will print- chi2, chi2reduced, best_a, da, best_b, db of the linear fit
+    # and eventually will plot the linear fit, and another plot of chi2 as a function of a
+    
     data_dict = {}
     check_input_type = rows_or_columns(filename)  # here we check what kind of input we get
     if check_input_type == 'columns':
@@ -402,7 +421,9 @@ def bonus_find_chi_reduced(n, chi):  # here we normalize chi squared
     return chi_squared_reduced
 
 
-def bonus_plot_chi(best_b, a_points, data_dict):  # this function plots chi as a function of a
+def bonus_plot_chi(best_b, a_points, data_dict):
+    # this function plots chi as a function of a
+    # it uses best_b as a constant
     import matplotlib.pyplot as plt
     import numpy as np
     x_axis = 'a'
